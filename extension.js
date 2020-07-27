@@ -1,136 +1,133 @@
 const St = imports.gi.St;
 const Main = imports.ui.main;
-const Soup = imports.gi.Soup;
 const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const Clutter = imports.gi.Clutter;
 const PanelMenu = imports.ui.panelMenu;
+const PopupMenu = imports.ui.popupMenu;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Util = imports.misc.util;
+
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Polyfill = Me.imports.polyfill;
-const Utils = Me.imports.utils;
+const Todoist = Me.imports.todoist;
 
-const URL = 'https://todoist.com/API/v8/sync';
+const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 
+	_init() {
+		super._init(0.0, "Todoist Indicator");
+		// properties init
+		this._settings = Convenience.getSettings();
+		this._api = new Todoist.API(this._settings.get_string('api-token'));
+		this._items = [];
 
-let _httpSession;
-let _syncToken;
-let _openItems;
-let _schema;
+		// label initialization
+		this.buttonText = new St.Label({
+			text: _("Loading..."),
+			y_align: Clutter.ActorAlign.CENTER
+		});
+		this.actor.add_actor(this.buttonText);
 
-const TodoistIndicator = new Lang.Class({
-		Name: 'Todoist.Indicator',
-		Extends: PanelMenu.Button,
+		// this.actor.connect('button-press-event', _openWebpage);
+		this._refresh();
+		this._timeout = Mainloop.timeout_add_seconds(60, this._refresh.bind(this));
+	}
 
-		_init: function () {
-			this.parent(0.0, "Todoist Indicator", false);
-			this.buttonText = new St.Label({
-				text: _("Loading..."),
-				y_align: Clutter.ActorAlign.CENTER
-			});
-			this.actor.add_actor(this.buttonText);
-			this.actor.connect('button-press-event', _openWebpage);
-			this._refresh();
-		},
-
-		_refresh: function () {
-			this._loadData(this._refreshUI);
-			this._removeTimeout();
-			this._timeout = Mainloop.timeout_add_seconds(60, Lang.bind(this, this._refresh));
-			return true;
-		},
-
-		_loadData: function () {
-			let token = _schema.get_string('api-token');
-			let params = {
-				token: token,
-				sync_token: _syncToken,
-				resource_types: '["items"]'
+	_refresh() {
+		let apiCallback = function (data) {
+			if (data == undefined) {
+				this._renderError("Connection error");
+				return;
 			}
-			_httpSession = new Soup.Session();
-			let message = Soup.form_request_new_from_hash('POST', URL, params);
-			_httpSession.queue_message(message, Lang.bind(this, function (_httpSession, message) {
-						if (message.status_code !== 200)
-							return;
-						let json = JSON.parse(message.response_body.data);
-						this._refreshUI(json);
-					}
-				)
-			);
-		},
+			this._parseItems(data.items);
+			this._render();
+		};
 
-		_isDoneOrDeletedOrArchived: function (item) {
-			return item.checked === 1 || item.is_deleted === 1 || item.in_history === 1;
-		},
+		this._api.sync(["items"], apiCallback.bind(this));
+		return true;
+	}
 
-		_isNotDone: function (item) {
-			return item.checked === 0;
-		},
+	// classification helpers
+	_isDoneOrDeletedOrArchived (item){
+		return item.checked === 1 || item.is_deleted === 1 || item.in_history === 1;
+	}
 
-		_extractId: function (item) {
-			return item.id;
-		},
+	_isNotDone(item) {
+		return item.checked === 0;
+	}
 
-		_removeIfInList: function (item) {
-			let index = _openItems.findIndex(openItem => openItem.id === item.id);
-			if (index > -1)
-				_openItems.splice(index, 1);
-		},
+	_isDueDateInPast(item) {
+	    if (item.due === null) return false;
 
-		_addOrUpdate: function (item) {
-			let index = _openItems.findIndex(openItem => openItem.id === item.id);
+	    let dueDate = new Date(item.due.date);
+	    dueDate.setHours(0,0,0,0);
+	    let today = new Date;
+	    today.setHours(0,0,0,0);
+
+	    return dueDate <= today;
+	}
+
+	// function doing actual item list parsing
+	_parseItems(items) {
+		let undoneItems = items.filter(this._isNotDone);
+		let doneItems = items.filter(this._isDoneOrDeletedOrArchived);
+
+		undoneItems.forEach(function (item) {
+			// adds or updates undone items
+			let index = this._items.findIndex(openItem => openItem.id === item.id);
 			if (index === -1)
-				_openItems.splice(_openItems.length, 0, item);
+				this._items.splice(this._items.length, 0, item);
 			else
-				_openItems[index] = item
-		},
+				this._items[index] = item
+		}, this);
 
-		_getTextForTaskCount: function (count) {
-			switch (count) {
-				case 0: return "no due tasks";
-				case 1: return "one due task";
-				default: return count + " due tasks";
-			}
-		},
+		doneItems.forEach(function (item) {
+			// remove items that are definitely done
+			let index = this._items.findIndex(openItem => openItem.id === item.id);
+			if (index > -1)
+				this._items.splice(index, 1);
+		}, this);
+	}
 
-		_parseJson: function (data) {
-			_syncToken = data.sync_token;
 
-			let undoneItems = data.items.filter(this._isNotDone);
-			let doneItems = data.items.filter(this._isDoneOrDeletedOrArchived);
-			undoneItems.forEach(this._addOrUpdate);
-			doneItems.forEach(this._removeIfInList);
-		},
-
-		_refreshUI: function (data) {
-			this._parseJson(data);
-
-			let count = _openItems.filter(Utils.isDueDateInPast).length;
-			this.buttonText.set_text(this._getTextForTaskCount(count));
-		},
-
-		_removeTimeout: function () {
-			if (this._timeout) {
-				Mainloop.source_remove(this._timeout);
-				this._timeout = null;
-			}
-		},
-
-		stop: function () {
-			if (_httpSession !== undefined)
-				_httpSession.abort();
-			_httpSession = undefined;
-
-			if (this._timeout)
-				Mainloop.source_remove(this._timeout);
-			this._timeout = undefined;
-
-			this.menu.removeAll();
+	// rendering functions
+	_getTextForTaskCount(count) {
+		switch (count) {
+			case 0: return "no due tasks";
+			case 1: return "one due task";
+			default: return count + " due tasks";
 		}
 	}
-);
+
+	_renderMenu(items) {
+		this.menu.removeAll();
+		items.forEach(function(item) {
+			this.menu.addMenuItem(new PopupMenu.PopupMenuItem(item.content));
+		}, this);
+	}
+
+	_render() {
+		let dueItems = this._items.filter(this._isDueDateInPast);
+
+		this.buttonText.set_text(this._getTextForTaskCount(dueItems.length));
+		this._renderMenu(dueItems);
+	}
+
+	_renderError(errorMsg) {
+		this.buttonText.set_text(errorMsg);
+		this.menu.removeAll();
+	}
+
+	stop() {
+		if (this._timeout) {
+			Mainloop.source_remove(this._timeout);
+			this._timeout = undefined;
+		}
+		this.api.destroy();
+		this.menu.removeAll();
+	}
+};
 
 function _openWebpage() {
 	Util.spawn(['xdg-open', 'https://todoist.com/app#agenda%2Foverdue%2C%20today'])
@@ -139,9 +136,6 @@ function _openWebpage() {
 let todoistMenu;
 
 function init() {
-	_syncToken = '*';
-	_openItems = [];
-	_schema = Convenience.getSettings();
 }
 
 function enable() {
