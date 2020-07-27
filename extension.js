@@ -29,7 +29,7 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 		});
 		this.actor.add_actor(this.buttonText);
 
-		// this.actor.connect('button-press-event', _openWebpage);
+		// start up
 		this._refresh();
 		this._timeout = Mainloop.timeout_add_seconds(60, this._refresh.bind(this));
 	}
@@ -105,6 +105,14 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 		items.forEach(function(item) {
 			this.menu.addMenuItem(new PopupMenu.PopupMenuItem(item.content));
 		}, this);
+
+		// this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+		//
+		// let viewOnTodoistButton = new PopupMenu.PopupMenuItem("view on todoist.com", {
+		// 	hover: false
+		// });
+		// viewOnTodoistButton.connect("activate", _openWebpage);
+		// this.menu.addMenuItem(viewOnTodoistButton);
 	}
 
 	_render() {
@@ -115,8 +123,8 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 	}
 
 	_renderError(errorMsg) {
-		this.buttonText.set_text(errorMsg);
 		this.menu.removeAll();
+		this.buttonText.set_text(errorMsg);
 	}
 
 	stop() {
