@@ -1,6 +1,5 @@
 const St = imports.gi.St;
 const Main = imports.ui.main;
-const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const Clutter = imports.gi.Clutter;
 const PanelMenu = imports.ui.panelMenu;
@@ -16,11 +15,12 @@ const Todoist = Me.imports.todoist;
 const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 
 	_init() {
-		super._init(0.0, "Todoist Indicator");
 		// properties init
 		this._settings = Convenience.getSettings();
-		this._api = new Todoist.API(this._settings.get_string('api-token'));
+		this._api = new Todoist.API(this._settings.get_string("api-token"));
 		this._items = [];
+
+		super._init(0.0, "Todoist Indicator");
 
 		// label initialization
 		this.buttonText = new St.Label({
@@ -31,7 +31,7 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 
 		// start up
 		this._refresh();
-		this._timeout = Mainloop.timeout_add_seconds(60, this._refresh.bind(this));
+		this._timeout = Mainloop.timeout_add_seconds(this._settings.get_uint("refresh-interval"), this._refresh.bind(this));
 	}
 
 	_refresh() {
@@ -111,7 +111,7 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 		// let viewOnTodoistButton = new PopupMenu.PopupMenuItem("view on todoist.com", {
 		// 	hover: false
 		// });
-		// viewOnTodoistButton.connect("activate", _openWebpage);
+		// viewOnTodoistButton.connect("activate", _openTodoistWeb);
 		// this.menu.addMenuItem(viewOnTodoistButton);
 	}
 
@@ -132,26 +132,29 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 			Mainloop.source_remove(this._timeout);
 			this._timeout = undefined;
 		}
-		this.api.destroy();
+
 		this.menu.removeAll();
+
+		this.api.destroy();
 	}
 };
 
-function _openWebpage() {
+function _openTodoistWeb() {
 	Util.spawn(['xdg-open', 'https://todoist.com/app#agenda%2Foverdue%2C%20today'])
 }
 
-let todoistMenu;
+let _extensionInstance;
 
 function init() {
+
 }
 
 function enable() {
-	todoistMenu = new TodoistIndicator;
-	Main.panel.addToStatusArea('todoist-indicator', todoistMenu);
+	_extensionInstance = new TodoistIndicator;
+	Main.panel.addToStatusArea('todoist-indicator', _extensionInstance);
 }
 
 function disable() {
-	todoistMenu.stop();
-	todoistMenu.destroy();
+	_extensionInstance.stop();
+	_extensionInstance.destroy();
 }

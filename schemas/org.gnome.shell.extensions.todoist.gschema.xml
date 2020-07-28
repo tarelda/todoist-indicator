@@ -5,5 +5,10 @@
 			<summary>Todoist API token</summary>
 			<description>Personal Todoist API token as found at the bottom of the integrations settings page</description>
 		</key>
+		<key name="refresh-interval" type="i">
+			<default>60</default>
+			<summary>Refresh interval</summary>
+			<description>Interval between subsequent Todoist synchronizations (in seconds)</description>
+		</key>
 	</schema>
 </schemalist>

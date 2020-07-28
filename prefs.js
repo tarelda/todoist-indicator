@@ -14,34 +14,65 @@ function init() {
 }
 
 const TodoistPrefsWidget = new GObject.Class({
-    Name: 'Todoist.Prefs.Widget',
-    GTypeName: 'TodoistPrefsWidget',
-    Extends: Gtk.Grid,
+  Name: 'Todoist.Prefs.Widget',
+  GTypeName: 'TodoistPrefsWidget',
+  Extends: Gtk.Grid,
 
-    _init: function(params) {
-	this.parent(params);
-        this.margin = 12;
-        this.row_spacing = this.column_spacing = 6;
-        this.set_orientation(Gtk.Orientation.VERTICAL);
+  _init: function(params) {
+    this._settings = Convenience.getSettings();
 
-	this.add(new Gtk.Label({ label: '<b>' + _("Todoist API token") + '</b>',
-                                 use_markup: true,
-                                 halign: Gtk.Align.START }));
+    this.parent(params);
 
-        let entry = new Gtk.Entry({ hexpand: true,
-                                    margin_bottom: 12 });
-        this.add(entry);
+    this.margin = 12;
+    this.row_spacing = this.column_spacing = 6;
+    this.set_orientation(Gtk.Orientation.VERTICAL);
 
-	this._settings = Convenience.getSettings();
-	this._settings.bind('api-token', entry, 'text', Gio.SettingsBindFlags.DEFAULT);
+    this.add(
+      new Gtk.Label({
+        label: "<b>Todoist API token</b>",
+        use_markup: true,
+        halign: Gtk.Align.START
+      })
+    );
 
-	let primaryText = _("You need to declare a valid API token to allow this extension to communicate with the \
-Todoist API on your behalf.\n\
-You can find your personal API token on Todoist's integration settings page at the very bottom.");
+    let apiTokenInput = new Gtk.Entry({
+        hexpand: true,
+        margin_bottom: 12
+    });
 
-	this.add(new Gtk.Label({ label: primaryText,
-                                 wrap: true, xalign: 0 }));
-    }
+    this.add(apiTokenInput);
+    this._settings.bind("api-token", apiTokenInput, "text", Gio.SettingsBindFlags.DEFAULT);
+
+    this.add(
+      new Gtk.Label({
+        label: "You need to declare a valid API token to allow this extension to communicate with the Todoist API on your behalf.\n"
+          + "You can find your personal API token on Todoist's integration settings page at the very bottom.",
+        wrap: true,
+        xalign: 0
+      })
+    );
+
+    this.add(
+      new Gtk.Label({
+        label: "<b>Refresh interval</b>",
+        use_markup: true,
+        halign: Gtk.Align.START
+      })
+    );
+
+    let refreshIntervalInput = new Gtk.SpinButton({
+      digits: 0,
+      adjustment: new Gtk.Adjustment({
+        lower: 0,
+        upper: 3600,
+        step_increment: 1,
+        page_increment: 1
+      })
+    });
+
+    this.add(refreshIntervalInput);
+    this._settings.bind("refresh-interval", refreshIntervalInput, "value", Gio.SettingsBindFlags.DEFAULT);
+  }
 });
 
 function buildPrefsWidget() {
