@@ -31,7 +31,7 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 
 		// start up
 		this._refresh();
-		this._timeout = Mainloop.timeout_add_seconds(this._settings.get_uint("refresh-interval"), this._refresh.bind(this));
+		this._timeout = Mainloop.timeout_add_seconds(this._settings.get_int("refresh-interval"), this._refresh.bind(this));
 	}
 
 	_refresh() {
