@@ -10,12 +10,12 @@ Being an absolute beginner when it comes to programming for Gnome the extension'
 
 # Setup
 
-Clone the repository to `~/.local/share/gnome-shell/extensions/` into a folder named `todoist@ubuntudroid.gmail.com` using the following command:
+Clone the repository to `~/.local/share/gnome-shell/extensions/` into a folder named `todoist@tarelda.github.com` using the following command:
 
-    git clone https://github.com/ubuntudroid/todoist-gnome-shell-extension.git todoist@ubuntudroid.gmail.com
-    
+    git clone https://github.com/ubuntudroid/todoist-gnome-shell-extension.git todoist@tarelda.github.com
+
 The name of the directory is important because Gnome Shell won't recognize the extension otherwise.
 
 Then restart Gnome Shell (ALT-F2 and then 'r') and navigate to https://extensions.gnome.org/local/. You can enable the extension and specify your Todoist API token there.
 
-Currently the extension syncs every 60 seconds, but I'll probably also make this configurable via the settings later. That means it could take up to one minute before the task count appears after setting the API token in the settings.
+By default extension syncs every 60 seconds. That means it could take up to one minute before the task count appears after setting the API token in the settings.
