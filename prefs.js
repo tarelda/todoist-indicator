@@ -3,15 +3,12 @@ const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 
-const Gettext = imports.gettext.domain('gnome-shell-extensions');
+const Gettext = imports.gettext;
 const _ = Gettext.gettext;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
-
-function init() {
-}
 
 const TodoistPrefsWidget = new GObject.Class({
   Name: 'Todoist.Prefs.Widget',
@@ -29,7 +26,7 @@ const TodoistPrefsWidget = new GObject.Class({
 
     this.add(
       new Gtk.Label({
-        label: "<b>Todoist API token</b>",
+        label: "<b>" + _("Todoist API token") + "</b>",
         use_markup: true,
         halign: Gtk.Align.START
       })
@@ -45,8 +42,8 @@ const TodoistPrefsWidget = new GObject.Class({
 
     this.add(
       new Gtk.Label({
-        label: "You need to declare a valid API token to allow this extension to communicate with the Todoist API on your behalf.\n"
-          + "You can find your personal API token on Todoist's integration settings page at the very bottom.",
+        label: _("You need to declare a valid API token to allow this extension to communicate with the Todoist API on your behalf.") + "\n"
+          + _("You can find your personal API token on Todoist's integration settings page at the very bottom."),
         wrap: true,
         xalign: 0
       })
@@ -54,7 +51,7 @@ const TodoistPrefsWidget = new GObject.Class({
 
     this.add(
       new Gtk.Label({
-        label: "<b>Refresh interval</b>",
+        label: "<b>" +  _("Refresh interval") +  "</b>",
         use_markup: true,
         halign: Gtk.Align.START
       })
@@ -74,6 +71,11 @@ const TodoistPrefsWidget = new GObject.Class({
     this._settings.bind("refresh-interval", refreshIntervalInput, "value", Gio.SettingsBindFlags.DEFAULT);
   }
 });
+
+function init() {
+  Gettext.textdomain("todoist@tarelda.github.com");
+	Gettext.bindtextdomain("todoist@tarelda.github.com", Me.dir.get_child("locale").get_path());
+}
 
 function buildPrefsWidget() {
     let widget = new TodoistPrefsWidget();

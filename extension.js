@@ -7,6 +7,9 @@ const PopupMenu = imports.ui.popupMenu;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Util = imports.misc.util;
 
+const Gettext = imports.gettext;
+const _ = Gettext.gettext;
+
 const Me = ExtensionUtils.getCurrentExtension();
 const Convenience = Me.imports.convenience;
 const Polyfill = Me.imports.polyfill;
@@ -31,13 +34,13 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 
 		// start up
 		this._refresh();
-		this._timeout = Mainloop.timeout_add_seconds(this._settings.get_int("refresh-interval"), this._refresh.bind(this));
+		this._refreshTimer = Mainloop.timeout_add_seconds(this._settings.get_int("refresh-interval"), this._refresh.bind(this));
 	}
 
 	_refresh() {
 		let apiCallback = function (data) {
 			if (data == undefined) {
-				this._renderError("Connection error");
+				this._renderError(_("Connection error"));
 				return;
 			}
 			this._parseItems(data.items);
@@ -94,9 +97,8 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 	// rendering functions
 	_getTextForTaskCount(count) {
 		switch (count) {
-			case 0: return "no due tasks";
-			case 1: return "one due task";
-			default: return count + " due tasks";
+			case 0: return _("no due tasks");
+			default: return Gettext.ngettext("one due task", "%d due tasks", count).format(count);
 		}
 	}
 
@@ -128,9 +130,9 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
 	}
 
 	stop() {
-		if (this._timeout) {
-			Mainloop.source_remove(this._timeout);
-			this._timeout = undefined;
+		if (this._refreshTimer) {
+			Mainloop.source_remove(this._refreshTimer);
+			this._refreshTimer = undefined;
 		}
 
 		this.menu.removeAll();
@@ -146,12 +148,13 @@ function _openTodoistWeb() {
 let _extensionInstance;
 
 function init() {
-
+	Gettext.textdomain("todoist@tarelda.github.com");
+	Gettext.bindtextdomain("todoist@tarelda.github.com", Me.dir.get_child("locale").get_path());
 }
 
 function enable() {
 	_extensionInstance = new TodoistIndicator;
-	Main.panel.addToStatusArea('todoist-indicator', _extensionInstance);
+	Main.panel.addToStatusArea("todoist-indicator", _extensionInstance);
 }
 
 function disable() {

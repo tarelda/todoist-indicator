@@ -6,6 +6,8 @@ It has not yet been submitted to the Gnome Shell extension directory and might n
 
 Being an absolute beginner when it comes to programming for Gnome the extension's code has been heavily influenced by [this](http://smasue.github.io/gnome-shell-tw) and [this](http://www.mibus.org/2013/02/15/making-gnome-shell-plugins-save-their-config/) blogpost. Kudos to the authors! :)
 
+Settings and localization were implemented based on [this](https://wiki.gnome.org/Projects/GnomeShell/Extensions/Writing).
+
 ![Screenshot](assets/todoist-gnome-shell-extension.png?raw=true "Screenshot")
 
 # Setup

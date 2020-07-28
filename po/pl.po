@@ -1,0 +1,64 @@
+# Polish translations for PACKAGE package
+# Polskie tłumaczenia dla pakietu PACKAGE.
+# Copyright (C) 2020 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated <>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-07-28 12:45+0200\n"
+"PO-Revision-Date: 2020-07-28 13:04+0200\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Gtranslator 2.91.7\n"
+
+#: extension.js:30
+msgid "Loading..."
+msgstr "Ładowanie..."
+
+#: extension.js:43
+msgid "Connection error"
+msgstr "Błąd połączenia"
+
+#: extension.js:100
+msgid "no due tasks"
+msgstr "brak zadań"
+
+#: extension.js:101
+#, javascript-format
+msgid "one due task"
+msgid_plural "%d due tasks"
+msgstr[0] "jedno zaległe zadanie"
+msgstr[1] "%d zaległych zadań"
+msgstr[2] "%d zaległych zadań"
+
+#: prefs.js:29
+msgid "Todoist API token"
+msgstr "Klucz API Todoist"
+
+#: prefs.js:45
+msgid ""
+"You need to declare a valid API token to allow this extension to communicate "
+"with the Todoist API on your behalf."
+msgstr ""
+"Musisz podać prawidłowy klucz API, aby to rozszerzenie mogło pobrać listę "
+"zadań z twojego konta."
+
+#: prefs.js:46
+msgid ""
+"You can find your personal API token on Todoist's integration settings page "
+"at the very bottom."
+msgstr ""
+"Klucz API Todoist dla swojego konta możesz znaleźć na stronie ustawień."
+
+#: prefs.js:54
+msgid "Refresh interval"
+msgstr "Czas pomiędzy synchronizacjami"
