@@ -74,7 +74,7 @@ const TodoistPrefsWidget = new GObject.Class({
 
 function init() {
   Gettext.textdomain("todoist@tarelda.github.com");
-	Gettext.bindtextdomain("todoist@tarelda.github.com", Me.dir.get_child("locale").get_path());
+  Gettext.bindtextdomain("todoist@tarelda.github.com", Me.dir.get_child("locale").get_path());
 }
 
 function buildPrefsWidget() {

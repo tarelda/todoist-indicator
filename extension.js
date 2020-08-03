@@ -55,21 +55,21 @@ let TodoistTaskMenuItem  = class TodoistTaskMenuItem extends PopupMenu.PopupBase
 };
 
 const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
-	_init() {
-		// properties init
-		this._settings = Convenience.getSettings();
-		this._api = new Todoist.API(this._settings.get_string("api-token"));
-		this._tasks = [];
+  _init() {
+  // properties init
+  this._settings = Convenience.getSettings();
+  this._api = new Todoist.API(this._settings.get_string("api-token"));
+  this._tasks = [];
     this._projects = [];
 
-		super._init(0.0, "Todoist Indicator");
+  super._init(0.0, "Todoist Indicator");
 
-		// label initialization
-		this.buttonText = new St.Label({
-			text: _("Loading..."),
-			y_align: Clutter.ActorAlign.CENTER
-		});
-		this.actor.add_actor(this.buttonText);
+  // label initialization
+  this.buttonText = new St.Label({
+  text: _("Loading..."),
+  y_align: Clutter.ActorAlign.CENTER
+  });
+  this.actor.add_actor(this.buttonText);
 
     // layout setup
     this._container = new St.BoxLayout({
@@ -93,39 +93,39 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
     openTodoistWebButton.connect("activate", _openTodoistWeb);
     this.menu.addMenuItem(openTodoistWebButton);
 
-		// start up
-		this._refresh();
-		this._refreshTimer = Mainloop.timeout_add_seconds(this._settings.get_int("refresh-interval"), this._refresh.bind(this));
-	}
+  // start up
+  this._refresh();
+  this._refreshTimer = Mainloop.timeout_add_seconds(this._settings.get_int("refresh-interval"), this._refresh.bind(this));
+  }
 
-	_refresh() {
-		let apiCallback = function (data) {
-			if (data == undefined) {
-				this._renderError(_("Connection error"));
-				return;
-			}
+  _refresh() {
+  let apiCallback = function (data) {
+  if (data == undefined) {
+  this._renderError(_("Connection error"));
+  return;
+  }
 
       this._parseProjects(data.projects);
-			this._parseTasks(data.items);
-			this._render();
-		};
+  this._parseTasks(data.items);
+  this._render();
+  };
 
-		this._api.sync(["items", "projects"], apiCallback.bind(this));
-		return true;
-	}
+  this._api.sync(["items", "projects"], apiCallback.bind(this));
+  return true;
+  }
 
-	// classification helpers
-	_isDoneOrDeletedOrArchived (item){
-		return item.checked === 1 || item.is_deleted === 1 || item.in_history === 1;
-	}
+  // classification helpers
+  _isDoneOrDeletedOrArchived (item){
+  return item.checked === 1 || item.is_deleted === 1 || item.in_history === 1;
+  }
 
   _isDeletedOrArchived(item) {
     return item.is_deleted === 1 || item.is_archived === 1;
   }
 
-	_isNotDone(item) {
-		return item.checked === 0;
-	}
+  _isNotDone(item) {
+  return item.checked === 0;
+  }
 
   _isDueDateToday(item) {
     if (item.due === null) return false;
@@ -140,29 +140,29 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
     return (dueDate >= today_min) && (dueDate <= today_max);
   }
 
-	_isDueDateInPast(item) {
-	    if (item.due === null) return false;
+  _isDueDateInPast(item) {
+      if (item.due === null) return false;
 
-	    let dueDate = new Date(item.due.date);
-	    dueDate.setHours(0,0,0,0);
-	    let today = new Date();
-	    today.setHours(0,0,0,0);
+      let dueDate = new Date(item.due.date);
+      dueDate.setHours(0,0,0,0);
+      let today = new Date();
+      today.setHours(0,0,0,0);
 
-	    return dueDate < today;
-	}
+      return dueDate < today;
+  }
 
   // tasks actions
   _closeTask(task, on_success, on_failure) {
     let uuid = Uuid.UuidV1()
     let commands = [
-			{
-				uuid: uuid,
-				type: "item_close",
-				args: {
-					id: task.id
-				}
-			}
-		];
+      {
+        uuid: uuid,
+        type: "item_close",
+        args: {
+          id: task.id
+        }
+      }
+    ];
 
     this._api.execute(commands, on_success, data => {
       log("close task command failed with error " + data.sync_status[uuid]["error"]);
@@ -170,9 +170,9 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
     });
   }
 
-	// functions doing actual tasks and projects list parsing
-	_parseTasks(tasks) {
-		let undoneTasks = tasks.filter(this._isNotDone);
+  // functions doing actual tasks and projects list parsing
+  _parseTasks(tasks) {
+  let undoneTasks = tasks.filter(this._isNotDone);
     // on init just push undone items
     if (this._tasks.length == 0) {
       this._tasks = undoneTasks;
@@ -197,7 +197,7 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
         this._tasks.splice(index, 1);
     }, this);
 
-	}
+  }
 
   _parseProjects(projects) {
     let activeProjects = projects.filter(item => !this._isDeletedOrArchived(item));
@@ -224,13 +224,13 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
   }
 
 
-	// rendering functions
-	_getTextForTaskCount(count) {
-		switch (count) {
-			case 0: return _("no due tasks");
-			default: return Gettext.ngettext("one due task", "%d due tasks", count).format(count);
-		}
-	}
+  // rendering functions
+  _getTextForTaskCount(count) {
+    switch (count) {
+      case 0: return _("no due tasks");
+      default: return Gettext.ngettext("one due task", "%d due tasks", count).format(count);
+    }
+  }
 
   _renderTodoLists(pastDueItems, todayItems) {
     this._container.destroy_all_children();
@@ -277,48 +277,48 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
     }
   }
 
-	_render() {
-		let pastDueItems = this._tasks.filter(this._isDueDateInPast);
+  _render() {
+    let pastDueItems = this._tasks.filter(this._isDueDateInPast);
     let todayItems = this._tasks.filter(this._isDueDateToday);
 
-		this.buttonText.set_text(this._getTextForTaskCount(pastDueItems.length));
-    this._renderTodoLists(pastDueItems, todayItems);
-	}
+    this.buttonText.set_text(this._getTextForTaskCount(pastDueItems.length));
+      this._renderTodoLists(pastDueItems, todayItems);
+    }
 
-	_renderError(errorMsg) {
-		this.menu.box.destroy_all_children();
-		this.buttonText.set_text(errorMsg);
-	}
+  _renderError(errorMsg) {
+    this.menu.box.destroy_all_children();
+    this.buttonText.set_text(errorMsg);
+  }
 
-	stop() {
-		if (this._refreshTimer) {
-			Mainloop.source_remove(this._refreshTimer);
-			this._refreshTimer = undefined;
-		}
+  stop() {
+    if (this._refreshTimer) {
+    Mainloop.source_remove(this._refreshTimer);
+    this._refreshTimer = undefined;
+    }
 
-		this.menu.box.destroy_all_children();
+    this.menu.box.destroy_all_children();
 
-		this._api.destroy();
-	}
+    this._api.destroy();
+  }
 };
 
 function _openTodoistWeb() {
-	Util.spawn(['xdg-open', 'https://todoist.com/app#agenda%2Foverdue%2C%20today']);
+  Util.spawn(['xdg-open', 'https://todoist.com/app#agenda%2Foverdue%2C%20today']);
 }
 
 let _extensionInstance;
 
 function init() {
-	Gettext.textdomain("todoist@tarelda.github.com");
-	Gettext.bindtextdomain("todoist@tarelda.github.com", Me.dir.get_child("locale").get_path());
+  Gettext.textdomain("todoist@tarelda.github.com");
+  Gettext.bindtextdomain("todoist@tarelda.github.com", Me.dir.get_child("locale").get_path());
 }
 
 function enable() {
-	_extensionInstance = new TodoistIndicator;
-	Main.panel.addToStatusArea("todoist-indicator", _extensionInstance);
+  _extensionInstance = new TodoistIndicator;
+  Main.panel.addToStatusArea("todoist-indicator", _extensionInstance);
 }
 
 function disable() {
-	_extensionInstance.stop();
-	_extensionInstance.destroy();
+  _extensionInstance.stop();
+  _extensionInstance.destroy();
 }
