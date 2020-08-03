@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-28 12:45+0200\n"
+"POT-Creation-Date: 2020-08-03 11:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,24 +18,44 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: extension.js:30
+#: extension.js:38
+msgid "Inbox"
+msgstr ""
+
+#: extension.js:69
 msgid "Loading..."
 msgstr ""
 
-#: extension.js:43
+#: extension.js:86
+msgid "Refresh"
+msgstr ""
+
+#: extension.js:91
+msgid "Open todoist.com"
+msgstr ""
+
+#: extension.js:104
 msgid "Connection error"
 msgstr ""
 
-#: extension.js:100
+#: extension.js:230
 msgid "no due tasks"
 msgstr ""
 
-#: extension.js:101
+#: extension.js:231
 #, javascript-format
 msgid "one due task"
 msgid_plural "%d due tasks"
 msgstr[0] ""
 msgstr[1] ""
+
+#: extension.js:240
+msgid "PAST DUE"
+msgstr ""
+
+#: extension.js:261
+msgid "TODAY"
+msgstr ""
 
 #: prefs.js:29
 msgid "Todoist API token"

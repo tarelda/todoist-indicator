@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-28 12:45+0200\n"
-"PO-Revision-Date: 2020-07-28 13:04+0200\n"
+"POT-Creation-Date: 2020-08-03 11:15+0200\n"
+"PO-Revision-Date: 2020-08-03 11:18+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: pl\n"
@@ -20,25 +20,45 @@ msgstr ""
 "|| n%100>=20) ? 1 : 2);\n"
 "X-Generator: Gtranslator 2.91.7\n"
 
-#: extension.js:30
+#: extension.js:38
+msgid "Inbox"
+msgstr "Skrzynka odbiorcza"
+
+#: extension.js:69
 msgid "Loading..."
 msgstr "Ładowanie..."
 
-#: extension.js:43
+#: extension.js:86
+msgid "Refresh"
+msgstr "Odśwież"
+
+#: extension.js:91
+msgid "Open todoist.com"
+msgstr "Otwórz todoist.com"
+
+#: extension.js:104
 msgid "Connection error"
 msgstr "Błąd połączenia"
 
-#: extension.js:100
+#: extension.js:230
 msgid "no due tasks"
-msgstr "brak zadań"
+msgstr "brak zaległych zadań"
 
-#: extension.js:101
+#: extension.js:231
 #, javascript-format
 msgid "one due task"
 msgid_plural "%d due tasks"
 msgstr[0] "jedno zaległe zadanie"
 msgstr[1] "%d zaległych zadań"
 msgstr[2] "%d zaległych zadań"
+
+#: extension.js:240
+msgid "PAST DUE"
+msgstr "PO TERMINIE"
+
+#: extension.js:261
+msgid "TODAY"
+msgstr "DZISIAJ"
 
 #: prefs.js:29
 msgid "Todoist API token"

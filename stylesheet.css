@@ -1,9 +1,21 @@
+.popup-togglable-menu-item-btn StIcon {
+    icon-size: 16px;
+}
 
-.helloworld-label {
-    font-size: 36px;
-    font-weight: bold;
-    color: #ffffff;
-    background-color: rgba(10,10,10,0.7);
-    border-radius: 5px;
-    padding: .5em;
+.todoist-indicator-container {
+  padding: 1em 0;
+}
+
+.todoist-indicator-container-section-label {
+  margin: 0.5em 2.75em;
+
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.todoist-indicator-container-task {
+  font-variant: small-caps;
+}
+
+.todoist-indicator-container-task-project-label {
 }
