@@ -93,30 +93,30 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
     openTodoistWebButton.connect("activate", _openTodoistWeb);
     this.menu.addMenuItem(openTodoistWebButton);
 
-  // start up
-  this._refresh();
-  this._refreshTimer = Mainloop.timeout_add_seconds(this._settings.get_int("refresh-interval"), this._refresh.bind(this));
+    // start up
+    this._refresh();
+    this._refreshTimer = Mainloop.timeout_add_seconds(this._settings.get_int("refresh-interval"), this._refresh.bind(this));
   }
 
   _refresh() {
-  let apiCallback = function (data) {
-  if (data == undefined) {
-  this._renderError(_("Connection error"));
-  return;
-  }
+    let apiCallback = function (data) {
+      if (data == undefined) {
+        this._renderError(_("Connection error"));
+        return;
+      }
 
       this._parseProjects(data.projects);
-  this._parseTasks(data.items);
-  this._render();
-  };
+      this._parseTasks(data.items);
+      this._render();
+    };
 
-  this._api.sync(["items", "projects"], apiCallback.bind(this));
-  return true;
+    this._api.sync(["items", "projects"], apiCallback.bind(this));
+    return true;
   }
 
   // classification helpers
   _isDoneOrDeletedOrArchived (item){
-  return item.checked === 1 || item.is_deleted === 1 || item.in_history === 1;
+    return item.checked === 1 || item.is_deleted === 1 || item.in_history === 1;
   }
 
   _isDeletedOrArchived(item) {
@@ -124,7 +124,7 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
   }
 
   _isNotDone(item) {
-  return item.checked === 0;
+    return item.checked === 0;
   }
 
   _isDueDateToday(item) {
@@ -141,14 +141,14 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
   }
 
   _isDueDateInPast(item) {
-      if (item.due === null) return false;
+    if (item.due === null) return false;
 
-      let dueDate = new Date(item.due.date);
-      dueDate.setHours(0,0,0,0);
-      let today = new Date();
-      today.setHours(0,0,0,0);
+    let dueDate = new Date(item.due.date);
+    dueDate.setHours(0,0,0,0);
+    let today = new Date();
+    today.setHours(0,0,0,0);
 
-      return dueDate < today;
+    return dueDate < today;
   }
 
   // tasks actions
@@ -247,6 +247,10 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
         y_expand: true
       });
 
+      pastDueItems.sort(function (a, b) {
+        return a.project_id - b.project_id;
+      }, this);
+
       pastDueItems.forEach(function(item) {
         let menuItem = new TodoistTaskMenuItem(item, this._projects.filter(project => project.id === item.project_id || project.legacy_id === item.project_id), this._closeTask.bind(this));
   			pastDueContainer.add(menuItem.actor);
@@ -267,6 +271,10 @@ const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
         x_expand: true,
         y_expand: true
       });
+
+      todayItems.sort(function (a, b) {
+        return a.day_order - b.day_order;
+      }, this);
 
       todayItems.forEach(function(item) {
         let menuItem = new TodoistTaskMenuItem(item, this._projects.filter( project => project.id === item.project_id || project.legacy_id === item.project_id ), this._closeTask.bind(this));

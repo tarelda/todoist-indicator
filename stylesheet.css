@@ -1,7 +1,3 @@
-.popup-togglable-menu-item-btn StIcon {
-    icon-size: 16px;
-}
-
 .todoist-indicator-container {
   padding: 1em 0;
 }
@@ -14,8 +10,9 @@
 }
 
 .todoist-indicator-container-task {
-  font-variant: small-caps;
+
 }
 
 .todoist-indicator-container-task-project-label {
+
 }

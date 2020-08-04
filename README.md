@@ -30,6 +30,8 @@ Then restart Gnome Shell (ALT-F2 and then 'r') and navigate to https://extension
 
 By default extension syncs every 60 seconds. That means it could take up to one minute before the task count appears after setting the API token in the settings.
 
+Past Due tasks are sorted by project id, while Today view shows them in todoist assigned order.
+
 
 # TODO
 
@@ -37,7 +39,8 @@ By default extension syncs every 60 seconds. That means it could take up to one 
 - improve error handling
 - utilize system notifications
 - try to push it into extensions store
+- make sorting configurable
 
 # Translations
 
-Directory scripts contains translation_example.sh script describing procedure for adding translation. 
+Directory scripts contains translation_example.sh script describing procedure for adding translation.
