@@ -22,7 +22,7 @@ Kudos to the authors! :)
 
 Clone the repository to `~/.local/share/gnome-shell/extensions/` into a folder named `todoist@tarelda.github.com` using the following command:
 
-    git clone https://github.com/ubuntudroid/todoist-gnome-shell-extension.git todoist@tarelda.github.com
+    git clone https://github.com/tarelda/todoist-indicator.git todoist@tarelda.github.com
 
 The name of the directory is important because Gnome Shell won't recognize the extension otherwise.
 
