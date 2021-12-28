@@ -15,8 +15,8 @@ const TodoistPrefsWidget = GObject.registerClass({
     GTypeName: 'TodoistPrefsWidget',
   },
   class TodoistPrefsWidget extends Gtk.Grid {
-    _init: function(params) {
-      this.parent(params);
+    _init(params) {
+      super._init(params);
       this._settings = Convenience.getSettings();
 
       this.margin = 12;
