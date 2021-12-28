@@ -1,7 +1,7 @@
 {
   "name": "Todoist",
   "description": "Lists tasks from Todoist task manager",
-  "shell-version": ["3.28.4"],
+  "shell-version": ["3.36.8"],
   "uuid": "todoist@tarelda.github.com",
   "settings-schema": "org.gnome.shell.extensions.todoist"
 }

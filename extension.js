@@ -20,7 +20,8 @@ const Polyfill = Me.imports.polyfill;
 const Todoist = Me.imports.todoist;
 const Uuid = Me.imports.uuid;
 
-let TodoistTaskMenuItem  = class TodoistTaskMenuItem extends PopupMenu.PopupBaseMenuItem {
+let TodoistTaskMenuItem  = GObject.registerClass(
+  class TodoistTaskMenuItem extends PopupMenu.PopupBaseMenuItem {
     _init(task, projects, on_activation, params) {
         super._init(params);
         this.actor.add_style_class_name("check-box");
@@ -52,263 +53,266 @@ let TodoistTaskMenuItem  = class TodoistTaskMenuItem extends PopupMenu.PopupBase
             on_activation(task, () => self.destroy(), () => self.remove_style_pseudo_class("checked"));
         });
     }
-};
+  }
+);
 
-const TodoistIndicator = class TodoistIndicator extends PanelMenu.Button {
-  _init() {
-  // properties init
-  this._settings = Convenience.getSettings();
-  this._api = new Todoist.API(this._settings.get_string("api-token"));
-  this._tasks = [];
+const TodoistIndicator = GObject.registerClass(
+  class TodoistIndicator extends PanelMenu.Button {
+    _init() {
+    super._init(0.0, "Todoist Indicator");
+
+    // properties init
+    this._settings = Convenience.getSettings();
+    this._api = new Todoist.API(this._settings.get_string("api-token"));
+    this._tasks = [];
     this._projects = [];
 
-  super._init(0.0, "Todoist Indicator");
-
-  // label initialization
-  this.buttonText = new St.Label({
-  text: _("Loading..."),
-  y_align: Clutter.ActorAlign.CENTER
-  });
-  this.actor.add_actor(this.buttonText);
-
-    // layout setup
-    this._container = new St.BoxLayout({
-      vertical: true,
-      x_expand: true,
-      y_expand: true,
-      style_class: "todoist-indicator-container"
+    // label initialization
+    this.buttonText = new St.Label({
+    text: _("Loading..."),
+    y_align: Clutter.ActorAlign.CENTER
     });
+    this.actor.add_actor(this.buttonText);
 
-    this.menu.box.add(this._container);
+      // layout setup
+      this._container = new St.BoxLayout({
+        vertical: true,
+        x_expand: true,
+        y_expand: true,
+        style_class: "todoist-indicator-container"
+      });
 
-    this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+      this.menu.box.add(this._container);
 
-    let refreshButton = new PopupMenu.PopupMenuItem(_("Refresh"));
-    // refreshButton.actor.set_x_align(Clutter.ActorAlign.CENTER);
-    refreshButton.connect("activate", this._refresh.bind(this));
-    this.menu.addMenuItem(refreshButton);
+      this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-    let openTodoistWebButton = new PopupMenu.PopupMenuItem(_("Open todoist.com"));
-    // openTodoistWebButton.actor.set_x_align(Clutter.ActorAlign.CENTER);
-    openTodoistWebButton.connect("activate", _openTodoistWeb);
-    this.menu.addMenuItem(openTodoistWebButton);
+      let refreshButton = new PopupMenu.PopupMenuItem(_("Refresh"));
+      // refreshButton.actor.set_x_align(Clutter.ActorAlign.CENTER);
+      refreshButton.connect("activate", this._refresh.bind(this));
+      this.menu.addMenuItem(refreshButton);
 
-    // start up
-    this._refresh();
-    this._refreshTimer = Mainloop.timeout_add_seconds(this._settings.get_int("refresh-interval"), this._refresh.bind(this));
-  }
+      let openTodoistWebButton = new PopupMenu.PopupMenuItem(_("Open todoist.com"));
+      // openTodoistWebButton.actor.set_x_align(Clutter.ActorAlign.CENTER);
+      openTodoistWebButton.connect("activate", _openTodoistWeb);
+      this.menu.addMenuItem(openTodoistWebButton);
 
-  _refresh() {
-    let apiCallback = function (data) {
-      if (data == undefined) {
-        this._renderError(_("Connection error"));
+      // start up
+      this._refresh();
+      this._refreshTimer = Mainloop.timeout_add_seconds(this._settings.get_int("refresh-interval"), this._refresh.bind(this));
+    }
+
+    _refresh() {
+      let apiCallback = function (data) {
+        if (data == undefined) {
+          this._renderError(_("Connection error"));
+          return;
+        }
+
+        this._parseProjects(data.projects);
+        this._parseTasks(data.items);
+        this._render();
+      };
+
+      this._api.sync(["items", "projects"], apiCallback.bind(this));
+      return true;
+    }
+
+    // classification helpers
+    _isDoneOrDeletedOrArchived (item){
+      return item.checked === 1 || item.is_deleted === 1 || item.in_history === 1;
+    }
+
+    _isDeletedOrArchived(item) {
+      return item.is_deleted === 1 || item.is_archived === 1;
+    }
+
+    _isNotDone(item) {
+      return item.checked === 0;
+    }
+
+    _isDueDateToday(item) {
+      if (item.due === null) return false;
+
+
+      let dueDate = new Date(item.due.date);
+      dueDate.setHours(0,0,0,0);
+      let today_min = new Date(), today_max = new Date();
+      today_min.setHours(0,0,0,0);
+      today_max.setHours(23,59,59,999);
+
+      return (dueDate >= today_min) && (dueDate <= today_max);
+    }
+
+    _isDueDateInPast(item) {
+      if (item.due === null) return false;
+
+      let dueDate = new Date(item.due.date);
+      dueDate.setHours(0,0,0,0);
+      let today = new Date();
+      today.setHours(0,0,0,0);
+
+      return dueDate < today;
+    }
+
+    // tasks actions
+    _closeTask(task, on_success, on_failure) {
+      let uuid = Uuid.UuidV1()
+      let commands = [
+        {
+          uuid: uuid,
+          type: "item_close",
+          args: {
+            id: task.id
+          }
+        }
+      ];
+
+      this._api.execute(commands, on_success, data => {
+        log("close task command failed with error " + data.sync_status[uuid]["error"]);
+        on_failure();
+      });
+    }
+
+    // functions doing actual tasks and projects list parsing
+    _parseTasks(tasks) {
+    let undoneTasks = tasks.filter(this._isNotDone);
+      // on init just push undone items
+      if (this._tasks.length == 0) {
+        this._tasks = undoneTasks;
         return;
       }
 
-      this._parseProjects(data.projects);
-      this._parseTasks(data.items);
-      this._render();
-    };
-
-    this._api.sync(["items", "projects"], apiCallback.bind(this));
-    return true;
-  }
-
-  // classification helpers
-  _isDoneOrDeletedOrArchived (item){
-    return item.checked === 1 || item.is_deleted === 1 || item.in_history === 1;
-  }
-
-  _isDeletedOrArchived(item) {
-    return item.is_deleted === 1 || item.is_archived === 1;
-  }
-
-  _isNotDone(item) {
-    return item.checked === 0;
-  }
-
-  _isDueDateToday(item) {
-    if (item.due === null) return false;
-
-
-    let dueDate = new Date(item.due.date);
-    dueDate.setHours(0,0,0,0);
-    let today_min = new Date(), today_max = new Date();
-    today_min.setHours(0,0,0,0);
-    today_max.setHours(23,59,59,999);
-
-    return (dueDate >= today_min) && (dueDate <= today_max);
-  }
-
-  _isDueDateInPast(item) {
-    if (item.due === null) return false;
-
-    let dueDate = new Date(item.due.date);
-    dueDate.setHours(0,0,0,0);
-    let today = new Date();
-    today.setHours(0,0,0,0);
-
-    return dueDate < today;
-  }
-
-  // tasks actions
-  _closeTask(task, on_success, on_failure) {
-    let uuid = Uuid.UuidV1()
-    let commands = [
-      {
-        uuid: uuid,
-        type: "item_close",
-        args: {
-          id: task.id
-        }
-      }
-    ];
-
-    this._api.execute(commands, on_success, data => {
-      log("close task command failed with error " + data.sync_status[uuid]["error"]);
-      on_failure();
-    });
-  }
-
-  // functions doing actual tasks and projects list parsing
-  _parseTasks(tasks) {
-  let undoneTasks = tasks.filter(this._isNotDone);
-    // on init just push undone items
-    if (this._tasks.length == 0) {
-      this._tasks = undoneTasks;
-      return;
-    }
-
-    undoneTasks.forEach(function (item) {
-      // adds or updates undone items
-      let index = this._tasks.findIndex(openItem => openItem.id === item.id);
-      if (index === -1)
-        this._tasks.splice(this._tasks.length, 0, item);
-      else
-        this._tasks[index] = item;
-    }, this);
-
-    let doneTasks = tasks.filter(this._isDoneOrDeletedOrArchived);
-
-    doneTasks.forEach(function (item) {
-      // remove items that are definitely done
-      let index = this._tasks.findIndex(openItem => openItem.id === item.id);
-      if (index > -1)
-        this._tasks.splice(index, 1);
-    }, this);
-
-  }
-
-  _parseProjects(projects) {
-    let activeProjects = projects.filter(item => !this._isDeletedOrArchived(item));
-    // init, there is always inbox so
-    if (this._projects.length == 0) {
-      this._projects = activeProjects;
-      return;
-    }
-
-    projects.filter(function (item) {
-      let index = this._tasks.findIndex(existingItem => existingItem.id === item.id);
-      log("Item " + item.id + " found index " + index);
-
-      if (index > -1) {
-        if (this._isDeletedOrArchived(item))
-          this._projects.splice(index, 1);
+      undoneTasks.forEach(function (item) {
+        // adds or updates undone items
+        let index = this._tasks.findIndex(openItem => openItem.id === item.id);
+        if (index === -1)
+          this._tasks.splice(this._tasks.length, 0, item);
         else
-          this._projects[index] = item;
+          this._tasks[index] = item;
+      }, this);
+
+      let doneTasks = tasks.filter(this._isDoneOrDeletedOrArchived);
+
+      doneTasks.forEach(function (item) {
+        // remove items that are definitely done
+        let index = this._tasks.findIndex(openItem => openItem.id === item.id);
+        if (index > -1)
+          this._tasks.splice(index, 1);
+      }, this);
+
+    }
+
+    _parseProjects(projects) {
+      let activeProjects = projects.filter(item => !this._isDeletedOrArchived(item));
+      // init, there is always inbox so
+      if (this._projects.length == 0) {
+        this._projects = activeProjects;
+        return;
       }
-      else
-        this._projects.push(item);
-    }, this);
 
-  }
+      projects.filter(function (item) {
+        let index = this._tasks.findIndex(existingItem => existingItem.id === item.id);
+        log("Item " + item.id + " found index " + index);
 
-
-  // rendering functions
-  _getTextForTaskCount(count) {
-    switch (count) {
-      case 0: return _("no due tasks");
-      default: return Gettext.ngettext("one due task", "%d due tasks", count).format(count);
-    }
-  }
-
-  _renderTodoLists(pastDueItems, todayItems) {
-    this._container.destroy_all_children();
-
-    if (pastDueItems.length > 0) {
-      this._container.add(new St.Label({
-        text: _("PAST DUE"),
-        style_class: "todoist-indicator-container-section-label",
-      }));
-
-      let pastDueContainer = new St.BoxLayout({
-        vertical: true,
-        x_expand: true,
-        y_expand: true
-      });
-
-      pastDueItems.sort(function (a, b) {
-        return a.project_id - b.project_id;
+        if (index > -1) {
+          if (this._isDeletedOrArchived(item))
+            this._projects.splice(index, 1);
+          else
+            this._projects[index] = item;
+        }
+        else
+          this._projects.push(item);
       }, this);
 
-      pastDueItems.forEach(function(item) {
-        let menuItem = new TodoistTaskMenuItem(item, this._projects.filter(project => project.id === item.project_id || project.legacy_id === item.project_id), this._closeTask.bind(this));
-  			pastDueContainer.add(menuItem.actor);
-  		}, this);
-
-      this._container.add(pastDueContainer);
     }
 
 
-    if (todayItems.length > 0) {
-      this._container.add(new St.Label({
-        text: _("TODAY"),
-        style_class: "todoist-indicator-container-section-label"
-      }));
+    // rendering functions
+    _getTextForTaskCount(count) {
+      switch (count) {
+        case 0: return _("no due tasks");
+        default: return Gettext.ngettext("one due task", "%d due tasks", count).format(count);
+      }
+    }
 
-      let todayContainer = new St.BoxLayout({
-        vertical: true,
-        x_expand: true,
-        y_expand: true
-      });
+    _renderTodoLists(pastDueItems, todayItems) {
+      this._container.destroy_all_children();
 
-      todayItems.sort(function (a, b) {
-        return a.day_order - b.day_order;
-      }, this);
+      if (pastDueItems.length > 0) {
+        this._container.add(new St.Label({
+          text: _("PAST DUE"),
+          style_class: "todoist-indicator-container-section-label",
+        }));
 
-      todayItems.forEach(function(item) {
-        let menuItem = new TodoistTaskMenuItem(item, this._projects.filter( project => project.id === item.project_id || project.legacy_id === item.project_id ), this._closeTask.bind(this));
-        todayContainer.add(menuItem.actor);
-      }, this);
+        let pastDueContainer = new St.BoxLayout({
+          vertical: true,
+          x_expand: true,
+          y_expand: true
+        });
 
-      this._container.add(todayContainer);
+        pastDueItems.sort(function (a, b) {
+          return a.project_id - b.project_id;
+        }, this);
+
+        pastDueItems.forEach(function(item) {
+          let menuItem = new TodoistTaskMenuItem(item, this._projects.filter(project => project.id === item.project_id || project.legacy_id === item.project_id), this._closeTask.bind(this));
+    			pastDueContainer.add(menuItem.actor);
+    		}, this);
+
+        this._container.add(pastDueContainer);
+      }
+
+
+      if (todayItems.length > 0) {
+        this._container.add(new St.Label({
+          text: _("TODAY"),
+          style_class: "todoist-indicator-container-section-label"
+        }));
+
+        let todayContainer = new St.BoxLayout({
+          vertical: true,
+          x_expand: true,
+          y_expand: true
+        });
+
+        todayItems.sort(function (a, b) {
+          return a.day_order - b.day_order;
+        }, this);
+
+        todayItems.forEach(function(item) {
+          let menuItem = new TodoistTaskMenuItem(item, this._projects.filter( project => project.id === item.project_id || project.legacy_id === item.project_id ), this._closeTask.bind(this));
+          todayContainer.add(menuItem.actor);
+        }, this);
+
+        this._container.add(todayContainer);
+      }
+    }
+
+    _render() {
+      let pastDueItems = this._tasks.filter(this._isDueDateInPast);
+      let todayItems = this._tasks.filter(this._isDueDateToday);
+
+      this.buttonText.set_text(this._getTextForTaskCount(pastDueItems.length));
+        this._renderTodoLists(pastDueItems, todayItems);
+      }
+
+    _renderError(errorMsg) {
+      this.menu.box.destroy_all_children();
+      this.buttonText.set_text(errorMsg);
+    }
+
+    stop() {
+      if (this._refreshTimer) {
+      Mainloop.source_remove(this._refreshTimer);
+      this._refreshTimer = undefined;
+      }
+
+      this.menu.box.destroy_all_children();
+
+      this._api.destroy();
     }
   }
-
-  _render() {
-    let pastDueItems = this._tasks.filter(this._isDueDateInPast);
-    let todayItems = this._tasks.filter(this._isDueDateToday);
-
-    this.buttonText.set_text(this._getTextForTaskCount(pastDueItems.length));
-      this._renderTodoLists(pastDueItems, todayItems);
-    }
-
-  _renderError(errorMsg) {
-    this.menu.box.destroy_all_children();
-    this.buttonText.set_text(errorMsg);
-  }
-
-  stop() {
-    if (this._refreshTimer) {
-    Mainloop.source_remove(this._refreshTimer);
-    this._refreshTimer = undefined;
-    }
-
-    this.menu.box.destroy_all_children();
-
-    this._api.destroy();
-  }
-};
+);
 
 function _openTodoistWeb() {
   Util.spawn(['xdg-open', 'https://todoist.com/app#agenda%2Foverdue%2C%20today']);
