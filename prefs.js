@@ -55,7 +55,7 @@ const TodoistPrefsWidget = GObject.registerClass({
           label: "<b>" +  _("Refresh interval") +  "</b>",
           use_markup: true,
           halign: Gtk.Align.START
-        }), 
+        }),
         0, 2, 1, 1
       );
 
@@ -82,8 +82,7 @@ function init() {
 
 function buildPrefsWidget() {
     let widget = new TodoistPrefsWidget();
-    widget.show_all();
-
+    if(typeof widget.show_all != "undefined") widget.show_all();
     return widget;
 }
 

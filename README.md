@@ -18,6 +18,10 @@ Kudos to the authors! :)
 
 ![Screenshot](assets/todoist-gnome-shell-extension.png?raw=true "Screenshot")
 
+# Compatibility
+
+Since I maintain this project in my spare time I don't intend to support versions other than one I currently use. I am usually running current Ubuntu LTS and GNOME version that is shipping with it. Thanks to @aadilayub codebase was adapted to run on GNOME 40/41, but there is no guarantees. Still feel free to report any quirks in the issues.
+
 # Setup
 
 Clone the repository to `~/.local/share/gnome-shell/extensions/` into a folder named `todoist@tarelda.github.com` using the following command:

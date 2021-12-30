@@ -175,7 +175,7 @@ const TodoistIndicator = GObject.registerClass(
 
     // functions doing actual tasks and projects list parsing
     _parseTasks(tasks) {
-    let undoneTasks = tasks.filter(this._isNotDone);
+      let undoneTasks = tasks.filter(this._isNotDone);
       // on init just push undone items
       if (this._tasks.length == 0) {
         this._tasks = undoneTasks;
@@ -293,8 +293,8 @@ const TodoistIndicator = GObject.registerClass(
       let todayItems = this._tasks.filter(this._isDueDateToday);
 
       this.buttonText.set_text(this._getTextForTaskCount(pastDueItems.length));
-        this._renderTodoLists(pastDueItems, todayItems);
-      }
+      this._renderTodoLists(pastDueItems, todayItems);
+    }
 
     _renderError(errorMsg) {
       this.menu.box.destroy_all_children();
@@ -303,8 +303,8 @@ const TodoistIndicator = GObject.registerClass(
 
     stop() {
       if (this._refreshTimer) {
-      Mainloop.source_remove(this._refreshTimer);
-      this._refreshTimer = undefined;
+        Mainloop.source_remove(this._refreshTimer);
+        this._refreshTimer = undefined;
       }
 
       this.menu.box.destroy_all_children();
