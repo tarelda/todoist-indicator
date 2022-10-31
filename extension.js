@@ -119,15 +119,15 @@ const TodoistIndicator = GObject.registerClass(
 
     // classification helpers
     _isDoneOrDeletedOrArchived (item){
-      return item.checked === 1 || item.is_deleted === 1 || item.in_history === 1;
+      return item.checked === true || item.is_deleted === true || item.in_history === true;
     }
 
     _isDeletedOrArchived(item) {
-      return item.is_deleted === 1 || item.is_archived === 1;
+      return item.is_deleted === true || item.is_archived === true;
     }
 
     _isNotDone(item) {
-      return item.checked === 0;
+      return item.checked === false;
     }
 
     _isDueDateToday(item) {
@@ -255,7 +255,7 @@ const TodoistIndicator = GObject.registerClass(
         }, this);
 
         pastDueItems.forEach(function(item) {
-          let menuItem = new TodoistTaskMenuItem(item, this._projects.filter(project => project.id === item.project_id || project.legacy_id === item.project_id), this._closeTask.bind(this));
+          let menuItem = new TodoistTaskMenuItem(item, this._projects.filter(project => project.id === item.project_id), this._closeTask.bind(this));
     			pastDueContainer.add(menuItem.actor);
     		}, this);
 
@@ -280,7 +280,7 @@ const TodoistIndicator = GObject.registerClass(
         }, this);
 
         todayItems.forEach(function(item) {
-          let menuItem = new TodoistTaskMenuItem(item, this._projects.filter( project => project.id === item.project_id || project.legacy_id === item.project_id ), this._closeTask.bind(this));
+          let menuItem = new TodoistTaskMenuItem(item, this._projects.filter( project => project.id === item.project_id), this._closeTask.bind(this));
           todayContainer.add(menuItem.actor);
         }, this);
 
