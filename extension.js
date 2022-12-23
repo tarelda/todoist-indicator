@@ -59,20 +59,20 @@ let TodoistTaskMenuItem  = GObject.registerClass(
 const TodoistIndicator = GObject.registerClass(
   class TodoistIndicator extends PanelMenu.Button {
     _init() {
-    super._init(0.0, "Todoist Indicator");
+      super._init(0.0, "Todoist Indicator");
 
-    // properties init
-    this._settings = Convenience.getSettings();
-    this._api = new Todoist.API(this._settings.get_string("api-token"));
-    this._tasks = [];
-    this._projects = [];
+      // properties init
+      this._settings = Convenience.getSettings();
+      this._api = new Todoist.API(this._settings.get_string("api-token"));
+      this._tasks = [];
+      this._projects = [];
 
-    // label initialization
-    this.buttonText = new St.Label({
-    text: _("Loading..."),
-    y_align: Clutter.ActorAlign.CENTER
-    });
-    this.actor.add_actor(this.buttonText);
+      // label initialization
+      this.buttonText = new St.Label({
+      text: _("Loading..."),
+      y_align: Clutter.ActorAlign.CENTER
+      });
+      this.actor.add_actor(this.buttonText);
 
       // layout setup
       this._container = new St.BoxLayout({
@@ -113,7 +113,11 @@ const TodoistIndicator = GObject.registerClass(
         this._render();
       };
 
-      this._api.sync(["items", "projects"], apiCallback.bind(this));
+      this._api.sync(["items", "projects"], apiCallback.bind(this), function(msg) {
+        log("sync have failed")
+        let payload = JSON.parse(msg.response_body.data);
+        log("response: " + JSON.stringify(payload));
+      });
       return true;
     }
 

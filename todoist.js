@@ -34,14 +34,15 @@ var API = class API {
 
   sync(resource_types, on_success, on_failure) {
     let params = {
-      token: this._token,
       sync_token: this._syncToken,
       resource_types: JSON.stringify(resource_types)
     }
-    let request = Soup.form_request_new_from_hash('POST', APIURL + "/sync", params);
+    let request = Soup.form_request_new_from_hash("POST", APIURL + "/sync", params);
+    request.request_headers.append("Authorization", "Bearer " + this._token);
+
     let on_response = function (session, response) {
       if (response.status_code !== 200) {
-        on_failure();
+        on_failure(response);
         return;
       }
       let data = JSON.parse(response.response_body.data);
@@ -53,11 +54,11 @@ var API = class API {
 
   execute(commands, on_success, on_failure) {
     let params = {
-      token: this._token,
       commands: JSON.stringify(commands)
     }
 
-    let request = Soup.form_request_new_from_hash('POST', APIURL + "/sync", params);
+    let request = Soup.form_request_new_from_hash("POST", APIURL + "/sync", params);
+    request.request_headers.append("Authorization", "Bearer " + this._token);
 
     let on_response = function (session, response) {
       if (response.status_code !== 200) {
